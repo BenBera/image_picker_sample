@@ -39,27 +39,56 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   File? image;
+   List<XFile>? _imageFileList;
+    final ImagePicker _picker = ImagePicker();
 
-Future<File> saveImagePermanently(String imagePath) async {
+  Future<File> saveImagePermanently(String imagePath) async {
     final directory = await getApplicationDocumentsDirectory();
     final name = basename(imagePath);
     final image = File('${directory.path}/ $name');
     return File(imagePath).copy(image.path);
   }
-    Future pickImage(ImageSource source) async {
-      try {
-        final image = await ImagePicker().pickImage(source: source);
-        if (image == null) return;
-        // final imageTemporary = File(image.path);
-        final imagePermanent = await saveImagePermanently(image.path);
 
-        setState(() {
-          this.image = imagePermanent;
-        });
-      } on PlatformException catch (e) {
-        print("Failed to pick image: $e");
-      }
+  Future pickImage(ImageSource source) async {
+    try {
+      final image = await ImagePicker().pickImage(source: source);
+      if (image == null) return;
+      // final imageTemporary = File(image.path);
+      final imagePermanent = await saveImagePermanently(image.path);
+
+      setState(() {
+        this.image = imagePermanent;
+      });
+    } on PlatformException catch (e) {
+      print("Failed to pick image: $e");
     }
+  }
+
+  Future takePhotos(ImageSource source) async {
+    try {
+      final pickedFileList = await _picker.pickMultiImage(
+        maxWidth: 200,
+        maxHeight: 200,
+        imageQuality: 100,
+      );
+      setState(() {
+        if (pickedFileList != null) {
+          _imageFileList = pickedFileList;
+          for (int i = 0; i < _imageFileList!.length; i++) {
+            // photos64.add(convertToBase64(_imageFileList![i].path));
+          }
+          // var len = photos64.length;
+          // print("photos64.length : $len");
+        } else {
+          _imageFileList = [];
+        }
+      });
+    } catch (e) {
+      // setState(() {
+      //   _pickImageError = e;
+      // });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +102,7 @@ Future<File> saveImagePermanently(String imagePath) async {
         child: Column(children: [
           image != null
               ? Image.file(
-                  image!, 
+                  image!,
                   width: 160,
                   height: 160,
                   fit: BoxFit.cover,
@@ -122,6 +151,4 @@ Future<File> saveImagePermanently(String imagePath) async {
               Text(tilte)
             ],
           ));
-
-  
 }
